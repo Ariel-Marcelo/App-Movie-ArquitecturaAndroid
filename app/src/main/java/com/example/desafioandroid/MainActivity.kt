@@ -1,11 +1,13 @@
 package com.example.desafioandroid
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -15,7 +17,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -23,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -37,36 +44,35 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : ComponentActivity() {
+
+    val viewModel: MainViewModel by viewModels()
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             DesafioAndroidTheme {
 
-
-                val movies = remember { mutableStateOf<List<ServerMovie>>(emptyList()) }
-
-                LaunchedEffect(key1 = false) {
-                    val response = Retrofit.Builder()
-                        .baseUrl("https://api.themoviedb.org/3/")
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
-                        .create(MoviesService::class.java)
-                        .getMovies()
-                        .results
-                    movies.value = response
-                }
-
+                // val viewModel: MainViewModel by viewModel()
+                val state = viewModel.state.observeAsState(MainViewModel.UiState())
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Scaffold (
+                    Scaffold(
                         topBar = {
                             TopAppBar(title = { Text(text = "Movies") })
                         }
-                    ){ padding ->
+                    ) { padding ->
+                        if (state.value?.loading == true) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = androidx.compose.ui.Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
                         LazyVerticalGrid(
                             columns = GridCells.Adaptive(180.dp),
                             modifier = Modifier.padding(padding),
@@ -74,23 +80,8 @@ class MainActivity : ComponentActivity() {
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                             contentPadding = PaddingValues(4.dp)
                         ) {
-                            items(movies.value) { movie ->
-                                Column {
-                                    AsyncImage(
-                                        model = "https://image.tmdb.org/t/p/w5185/${movie.poster_path}",
-                                        contentDescription = movie.title,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .aspectRatio(2 / 3f)
-                                    )
-                                    Text(
-                                        text = movie.title,
-                                        modifier = Modifier.padding(16.dp),
-                                        maxLines = 1
-                                    )
-                                }
-
-                            }
+                            items(state.value?.movies ?: emptyList()) { movie ->
+                                MovieItem(movie, { viewModel.onMovieClick })
                         }
                     }
 
@@ -98,6 +89,33 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun MovieItem(movie: ServerMovie, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier.clickable (onClick = onClick )
+    ) {
+    if (movie.favorite){
+        Icon(
+            imageVector = Icons.Filled.Favorite,
+            contentDescription = "Favorite",
+        )
+
+    }
+    AsyncImage(
+            model = "https://image.tmdb.org/t/p/w5185/${movie.poster_path}",
+            contentDescription = movie.title,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(2 / 3f)
+        )
+        Text(
+            text = movie.title,
+            modifier = Modifier.padding(16.dp),
+            maxLines = 1
+        )
     }
 }
 

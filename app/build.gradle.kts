@@ -50,6 +50,15 @@ android {
 }
 
 dependencies {
+    // view model
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
+    // compose
+    implementation("androidx.activity:activity-compose:1.6.1")
+    implementation("androidx.compose.ui:ui:1.3.3")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.3.3")
+    implementation("androidx.compose.material:material:1.3.1")
+    // COMPOSE RUN TIME TO OBSERVER STATE
+    implementation("androidx.compose.runtime:runtime-livedata:1.3.3")
     // coil
     implementation("io.coil-kt:coil-compose:2.2.2")
     // gson factory

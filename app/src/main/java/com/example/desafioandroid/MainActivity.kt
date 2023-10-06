@@ -74,64 +74,66 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         LazyVerticalGrid(
-                            columns = GridCells.Adaptive(180.dp),
+                            columns = GridCells.Adaptive(50.dp),
                             modifier = Modifier.padding(padding),
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                             contentPadding = PaddingValues(4.dp)
                         ) {
+                            Log.i("This is my movie", state.value?.movies.toString())
                             items(state.value?.movies ?: emptyList()) { movie ->
-                                MovieItem(movie, { viewModel.onMovieClick })
+                                MovieItem(movie) { viewModel.onMovieClick(movie) }
+                            }
                         }
                     }
-
-
                 }
             }
         }
     }
-}
 
-@Composable
-fun MovieItem(movie: ServerMovie, onClick: () -> Unit) {
-    Column(
-        modifier = Modifier.clickable (onClick = onClick )
-    ) {
-    if (movie.favorite){
-        Icon(
-            imageVector = Icons.Filled.Favorite,
-            contentDescription = "Favorite",
-        )
+    @Composable
+    fun MovieItem(movie: ServerMovie, onClick: () -> Unit) {
+        Log.i("This is my movie", movie.poster_path)
+        Column(
+            modifier = Modifier.clickable(onClick = onClick)
+        ) {
+            if (movie.favorite) {
+                Icon(
+                    imageVector = Icons.Filled.Favorite,
+                    contentDescription = "Favorite",
+                )
 
+            }
+            AsyncImage(
+                //model = "https://image.tmdb.org/t/p/w5185/${movie.backdrop_path}",
+                model = "https://www.anmosugoi.com/wp-content/uploads/2023/09/Mcdonalds-waifu.webp",
+                contentDescription = movie.title,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(2 / 3f)
+            )
+            Text(
+                text = movie.title,
+                modifier = Modifier.padding(16.dp),
+                maxLines = 1
+            )
+        }
     }
-    AsyncImage(
-            model = "https://image.tmdb.org/t/p/w5185/${movie.poster_path}",
-            contentDescription = movie.title,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(2 / 3f)
-        )
+
+
+    @Composable
+    fun Greeting(name: String, modifier: Modifier = Modifier) {
         Text(
-            text = movie.title,
-            modifier = Modifier.padding(16.dp),
-            maxLines = 1
+            text = "Hello $name!",
+            modifier = modifier
         )
     }
-}
 
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    DesafioAndroidTheme {
-        Greeting("Android")
+    @Preview(showBackground = true)
+    @Composable
+    fun GreetingPreview() {
+        DesafioAndroidTheme {
+            Greeting("Android")
+        }
     }
 }

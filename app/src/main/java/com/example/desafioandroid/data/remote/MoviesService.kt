@@ -1,5 +1,6 @@
-package com.example.desafioandroid
+package com.example.desafioandroid.data.remote
 
+import com.example.desafioandroid.data.remote.MovieResult
 import retrofit2.http.GET
 
 interface MoviesService {

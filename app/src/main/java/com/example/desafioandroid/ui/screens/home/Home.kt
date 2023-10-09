@@ -32,17 +32,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.desafioandroid.data.Movie
+import com.example.desafioandroid.data.MoviesRepository
 import com.example.desafioandroid.data.local.MoviesDao
 import com.example.desafioandroid.data.remote.ServerMovie
 import com.example.desafioandroid.ui.theme.DesafioAndroidTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Home(movieDao: MoviesDao) {
+fun Home(moviesRepository: MoviesRepository) {
     DesafioAndroidTheme {
         // Normalmente en el view model se crearia un factory si estamos con xml
         // Estamos creando un viewModel con el mvoieDao
-        val viewModel: HomeViewModel = viewModel{HomeViewModel(movieDao)}
+        val viewModel: HomeViewModel = viewModel{HomeViewModel(moviesRepository)}
 
 
         val state by viewModel.state.collectAsState()

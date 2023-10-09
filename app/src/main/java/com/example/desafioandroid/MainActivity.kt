@@ -6,6 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.room.Room
+import com.example.desafioandroid.data.local.LocalDataSource
+import com.example.desafioandroid.data.MoviesRepository
+import com.example.desafioandroid.data.remote.RemoteDataSource
 import com.example.desafioandroid.data.local.MoviesDatabase
 import com.example.desafioandroid.ui.screens.home.Home
 import com.example.desafioandroid.ui.screens.home.HomeViewModel
@@ -30,8 +33,13 @@ class MainActivity : ComponentActivity() {
             "movies.db"
         ).build()
 
+        val moviesRepository: MoviesRepository = MoviesRepository(
+            localDataSource = LocalDataSource(db.movieDao()),
+            remoteDataSource = RemoteDataSource()
+        )
+
         setContent {
-            Home(db.movieDao())
+            Home(moviesRepository)
         }
     }
 

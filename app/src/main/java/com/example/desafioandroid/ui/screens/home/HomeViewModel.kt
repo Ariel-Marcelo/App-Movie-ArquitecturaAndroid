@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.example.desafioandroid.data.Movie
+import com.example.desafioandroid.data.MoviesRepository
 import com.example.desafioandroid.data.local.MoviesDao
 import com.example.desafioandroid.data.local.toMovie
 import com.example.desafioandroid.data.remote.MoviesService
@@ -13,13 +14,14 @@ import com.example.desafioandroid.data.remote.ServerMovie
 import com.example.desafioandroid.data.remote.toLocalMovie
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 
 // EN los view models no debemos tener acceso al contexto??
-class HomeViewModel(val dao: MoviesDao) : ViewModel() {
+class HomeViewModel(private val moviesRepository: MoviesRepository) : ViewModel() {
     // tenemos el mutableSateFlow
     // El stateFlow
     // Otra forma de hacerlo, mas rendimiento, tienen una funci{on update
@@ -30,25 +32,12 @@ class HomeViewModel(val dao: MoviesDao) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            val isDbEmpty = dao.count() == 0
-            if (isDbEmpty) {
-                dao.insertAll(
-                    Retrofit.Builder()
-                        .baseUrl("https://api.themoviedb.org/3/")
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
-                        .create(MoviesService::class.java)
-                        .getMovies()
-                        .results
-                        .map { it.toLocalMovie() }
-                )
-            }
-            //_state.value = UiState(loading = true)
-            // collect porque getMovies devuelve movies envuelto en flow
-            // se llama cada vez q hay un cambio en la base de datos
-            dao.getMovies().collect { movies ->
+            _state.value = UiState(loading = true)
+            moviesRepository.requestMovies()
+
+            moviesRepository.movies.collect { movies ->
                 _state.value = UiState(
-                    loading = false, movies = movies.map { it.toMovie() }
+                    movies = movies
                 )
             }
         }
@@ -59,7 +48,7 @@ class HomeViewModel(val dao: MoviesDao) : ViewModel() {
         viewModelScope.launch {
             // nota que usamos el favorite porque los datos son inmutalbes
             // no valdría si hicieramos movie.favorite = !movie.favorite
-            dao.updateMovie(movie.copy(favorite = !movie.favorite).toLocalMovie())
+            moviesRepository.updateMovie(movie)
         }
     }
 

@@ -1,30 +1,23 @@
 package com.example.desafioandroid.data
 
-import com.example.desafioandroid.data.local.MoviesDao
-import com.example.desafioandroid.data.remote.MoviesService
-import com.example.desafioandroid.data.remote.toMovie
+import com.example.desafioandroid.data.local.LocalDataSource
+import com.example.desafioandroid.data.remote.RemoteDataSource
 import kotlinx.coroutines.flow.Flow
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
-class LocalDataSource (dao: MoviesDao) {
+class MoviesRepository (
+    private val localDataSource: LocalDataSource,
+    private val remoteDataSource: RemoteDataSource
+) {
+    val movies: Flow<List<Movie>> = localDataSource.movies
 
-    
-}
-
-class RemoteDataSource {
-    suspend fun getMovies() : List<Movie> {
-        return Retrofit.Builder()
-            .baseUrl("https://api.themoviedb.org/3/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(MoviesService::class.java)
-            .getMovies()
-            .results
-            .map { it.toMovie() }
+    suspend fun updateMovie(movie: Movie) {
+        localDataSource.updateMovie(movie)
     }
-}
-class MoviesRepository {
 
-
+    suspend fun requestMovies()  {
+        val isDbEmpty = localDataSource.count() == 0
+        if (isDbEmpty) {
+            localDataSource.inserAll(remoteDataSource.getMovies())
+        }
+    }
 }
